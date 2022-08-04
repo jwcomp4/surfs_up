@@ -58,10 +58,20 @@ def welcome():
 # Convention when creating rows is the /api/v1.0/ followed by the name of the route
 # This signals this is the first version of the app
 
-@app.route('/Homepage')
+# Note that every time you create a new route, code should be aligned to left to avoid errors
 
-def home_page():
-    return 'This is the homepage. Welcome home.'
+@app.route('/api/v1.0/percipitation')
+
+def percipitation():
+    # This code will look very similar to climate_analysis.ipynb
+    prev_year = dt.date(2017, 8, 23) - dt.timedelta(365)
+    precipitation = session.query(Measurement.date, Measurement.prcp).\
+        filter(Measurement.date >= prev_year).all()
+    # Creating a dict with date as key and prcp as value
+    # Also using the jsonify() function to convert dict to JSON file
+    # Recall that JSON files are good for cleaning, filtering, sorting, vis data
+    precip = {date: prcp for date, prcp in precipitation}
+    return jsonify(precip) 
 
 # to run the app, use environment variable by putting export FLASK_APP=app.py
 # do this after navigating the directory where app.py is saved.
