@@ -73,5 +73,59 @@ def percipitation():
     precip = {date: prcp for date, prcp in precipitation}
     return jsonify(precip) 
 
+# Creating the stations route
+
+@app.route('/api/v1.0/stations')
+
+def stations():
+    # Creating the query to get stations 
+    results = session.query(Station.station).all()
+    # Now using the np.ravel() function to unravel results into one dimensional array
+    # Then convert unraveled results to a list.
+    # Then jsonify
+    stations = list(np.ravel(results))
+    return jsonify(stations=stations)
+
+# Creating the Monthly Temperature Route
+
+@app.route('/api/v1.0/tobs')
+
+def temp_month():
+    # Calculating the previous year
+    prev_year = dt.date(2017, 8, 23) - dt.timedelta(365)
+    # Query the primary station for all temp observations
+    results = session.query(Measurement.tobs).\
+        filter(Measurement.station == 'USC00519281').\
+        filter(Measurement.date >= prev_year).all()
+    temps = list(np.ravel(results))
+    return jsonify(temps=temps)
+
+# Creating the Statistics Route
+
+@app.route('/api/v1.0/temp/<start>')
+
+@app.route('/api/v1.0/temp/<start>/<end>')
+
+def stats(start=None, end=None):
+    # When function is declared, create a query to select min, avg, and max temps from SQLite database
+    # Using the func class to populate a list
+    sel = [func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)]
+    # Using if-not statement to determin the start and ending date
+    # Run a query using the constructed list
+    # unravel results and jsonify
+
+    if not end:
+        results = session.query(*sel).\
+            filter(Measurement.date >= start).all()
+        temps = list (np.ravel(results))
+
+        return jsonify(temps)
+
+    results = session.query(*sel).\
+        filter(Measurement.date >= start).\
+        filter(Measurement.date <= end).all()
+    temps = list(np.ravel(results))
+    return jsonify(temps)
+
 # to run the app, use environment variable by putting export FLASK_APP=app.py
 # do this after navigating the directory where app.py is saved.
